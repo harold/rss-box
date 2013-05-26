@@ -1,0 +1,11 @@
+{
+  "name": "rss-box",
+  "description": "a node backend for a self-hosted rss reader that uses dropbox",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "express": "3.2.5",
+    "xml2js": "0.2.7",
+    "underscore": "1.4.4"
+  }
+}

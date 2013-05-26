@@ -1,0 +1,160 @@
+﻿* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+html {overflow-y:scroll;}
+
+body {
+	overflow-x: hidden;
+	font-size: 20px;
+	color: #333;
+}
+
+a,
+a:link,
+a:visited {
+	color: #33e;
+	text-decoration: none;
+}
+
+a:hover,
+a:active {
+	text-decoration: underline;
+}
+
+h1, h2, h3 {
+	font-family: Helvetica, sans-serif;
+	background:#eee;
+}
+
+#menu-area {
+	font-family: Helvetica, sans-serif;
+	position:fixed;
+	top:0;
+	right:0;
+	margin:2px;
+	z-index:2;
+}
+
+#three-line-button {
+	background:#fff;
+	display:block;
+	margin-left:auto;
+	padding: 8px;
+	border:solid 1px #888;
+}
+
+#menu-area.open #three-line-button {
+	border:solid 1px #888;
+	border-bottom:0;
+}
+
+#three-line-button:hover {
+	background:#f4f4f4;
+}
+
+#menu {
+	display: none;
+}
+
+#menu-area.open #menu {
+	display: block;
+}
+
+#menu ul {
+	border:solid 1px #888;
+}
+
+#menu li {
+	font-family: Consolas, Menlo, monospace;
+	font-size: 66%;
+	background:#fff;
+	list-style:none;
+	padding: 0.5ex 0.5em;
+	max-width: 25em;
+	overflow: hidden;
+}
+
+#menu li:hover {
+	background:#f4f4f4;
+}
+
+#menu input {
+	width: 20em;
+}
+
+#main {
+	font-family: Georgia, Cambria, 'Times New Roman', Times, serif;
+	width:960px;
+	margin:0 auto;
+	z-index:1;
+}
+
+.red-x {
+	margin-right:0.5em;
+	vertical-align: 0.25ex;
+	color: #f66;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.one-line-feed {
+	width: 11em;
+	overflow: hidden;
+	display: inline-block;
+	opacity: 0.5;
+	font-size: 50%;
+}
+
+.one-line-item {
+	border-bottom: solid 1px #eee;
+	white-space: nowrap;
+	overflow: hidden;
+	padding: 2px 0;
+	cursor: pointer;
+}
+
+.full-item {
+	display: none;
+}
+
+.feed-title {
+	font-size: 10px;
+	color: #888;
+	background: #eee;
+}
+
+.full-item h2 a {
+	color: #333;
+}
+
+.item-body {
+	max-width:640px;
+}
+
+.item-footer {
+	background: #eee;
+	border-radius: 0 0 4px 4px;
+}
+
+p {
+	margin-bottom:1ex;
+}
+
+ul, ol {
+	margin-left:2em;
+}
+
+blockquote {
+	margin: 1ex 1em;
+}
+
+.ancillary {
+	opacity: 0.5;
+}
+
+.feedflare {
+	display:none; /* TODO: Is this appropriate? */
+}
