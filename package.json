@@ -6,6 +6,7 @@
   "dependencies": {
     "express": "3.2.5",
     "xml2js": "0.2.7",
-    "underscore": "1.4.4"
+    "underscore": "1.4.4",
+    "rimraf": "2.1.4"
   }
 }

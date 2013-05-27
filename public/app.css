@@ -158,3 +158,13 @@ blockquote {
 .feedflare {
 	display:none; /* TODO: Is this appropriate? */
 }
+
+#footer {
+	position:fixed;
+	bottom:0;
+	right:0;
+	font-size:66%;
+	padding:0.5ex 0.5em;
+	background:#eee;
+	border-radius: 4px 0 0 0;
+}

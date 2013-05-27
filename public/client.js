@@ -27,6 +27,8 @@ var ReadingList = (function () {
 
 			if( 0 == _this.list.length )
 				_this.elt.replaceWith("No unread items. You can add more feeds using that menu in the top right corner &rarr;");
+
+			humane.log("Reading list refreshed, "+_this.list.length+" unread items.");
 		});
 	};
 	ReadingList.prototype.toggleByIndex = function (index) {
@@ -99,9 +101,18 @@ $(document).ready(function () {
 		var list = $("<ul/>").appendTo("#menu");
 
 		var makeListItem = function( feed ) {
-			var item = $("<li/>").html(feed);
-			var redX = $("<span title='REMOVE' class='red-x'>x</span>");
-			item.prepend(redX);
+			var item = $("<li/>").html(feed.title);
+			if( feed.id ) {
+				var redX = $("<span title='REMOVE' class='red-x'>x</span>");
+				redX.click( function(e) {
+					if( confirm( "Are you sure you want to remove "+feed.title+"?") ) {
+						$.post( '/removefeed', {feedId:feed.id}, function() {
+							item.remove();
+						});
+					}
+				});
+				item.prepend(redX);
+			}
 			return item;
 		}
 
@@ -114,7 +125,7 @@ $(document).ready(function () {
 		addInput.keypress( function(e) {
 			if(13==e.which) { // enter
 				$.post("/addfeed", {url:addInput.val()});
-				addArea.before(makeListItem(addInput.val()));
+				addArea.before(makeListItem({title:addInput.val()}));
 				addInput.val("");
 			}
 		});

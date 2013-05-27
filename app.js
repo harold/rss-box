@@ -3,6 +3,7 @@ var path = require('path');
 var fs = require('fs');
 var http = require('http');
 var parseXMLString = require('xml2js').parseString;
+var rimraf = require('rimraf');
 
 var express = require('express');
 var app = express();
@@ -116,16 +117,22 @@ app.get('/feedlist', function(req, res) {
 	var feeds = dir(feedFolder);
 	_.each( feeds, function(feed) {
 		var feedIndex = JSON.parse(fs.readFileSync(feedFolder+"/"+feed+"/index.json"));
-		out.push( feedIndex.title );
+		out.push( {id:feed, title:feedIndex.title} );
 	});
 
-	res.send(JSON.stringify(out.sort()));
+	res.send(JSON.stringify(_.sortBy(out, function(feed){return feed.title.toLowerCase()})));
 });
 
 app.post('/addfeed', function(req, res) {
 	var url = req.body.url;
 	if( url )
 		processFeed(url);
+});
+
+app.post('/removefeed', function(req, res) {
+	var feed = req.body.feedId;
+	rimraf.sync('./data/feeds/'+feed);
+	res.send(JSON.stringify({status:"OK"}));
 });
 
 app.get('/readinglist', function(req, res) {
@@ -163,7 +170,8 @@ app.listen(port);
 console.log('Listening on port '+port);
 
 var msInAMinute = 1000*60;
-var thirtyMinutes = 30 * msInAMinute;
+var fiveMinnutes = 5 * msInAMinute;
+var anHour = 60 * msInAMinute;
 
 var updateFeeds = function() {
 	var feedFolder = "./data/feeds";
@@ -172,7 +180,7 @@ var updateFeeds = function() {
 		var feedIndex = JSON.parse(fs.readFileSync(feedFolder+"/"+feed+"/index.json"));
 		var currentTime = (new Date).getTime();
 		var delta = currentTime - feedIndex.lastFetched;
-		if( delta > 2*thirtyMinutes ) { // update at most once an hour
+		if( delta > anHour ) { // update at most once an hour
 			console.log( "Updating: " + feedIndex.title );
 			processFeed( feedIndex.url );
 		}
@@ -183,4 +191,4 @@ updateFeeds();
 setInterval( function() {
 	console.log( "Waking up to update feeds..." );
 	updateFeeds();
-}, thirtyMinutes+(10*60*1000*Math.random())); // 30 minutes + 0-10 minutes.
+}, fiveMinnutes+(fiveMinnutes*Math.random())); // 5 minutes + 0-5 minutes.
