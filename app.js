@@ -15,10 +15,16 @@ var hashString = function( str ) {
 }
 
 if( !fs.existsSync('./data') )
-	fs.mkdir('./data', 0755 );
+	fs.mkdirSync('./data', 0755 );
 
 if( !fs.existsSync('./data/feeds') )
-	fs.mkdir('./data/feeds', 0755 );
+	fs.mkdirSync('./data/feeds', 0755 );
+
+var dir = function( path ) {
+	return _.filter( fs.readdirSync(path), function(path) {
+		return (!path.match(/^\./));
+	});
+}
 
 var getFeed = function( url, callback ) {
 	http.get(url, function( res ) {
@@ -66,17 +72,17 @@ var getId = function( item ) {
 
 var processFeed = function( url ) {
 	getFeed( url, function( feed ) {
-		var urlHash = hashString(url);
-		var folder = './data/feeds/'+urlHash;
+		var feedId = hashString(url);
+		var folder = './data/feeds/'+feedId;
 		if( !fs.existsSync(folder) )
-			fs.mkdir(folder, 0755 );
+			fs.mkdirSync(folder, 0755 );
 		var outFeed = {
 			url: url,
 			title: feed.rss.channel[0].title[0],
 			link: feed.rss.channel[0].link[0],
 			lastFetched: (new Date).getTime()
 		};
-		fs.writeFile(folder+"/index.json", JSON.stringify(outFeed) );
+		fs.writeFileSync(folder+"/index.json", JSON.stringify(outFeed) );
 
 		var items = feed.rss.channel[0].item;
 		items = _.map( items, function(item) {
@@ -86,6 +92,7 @@ var processFeed = function( url ) {
 				content: getContent(item),
 				date: Date.parse(item.pubDate[0]),
 				id: hashString(getId(item)),
+				feedId: feedId,
 				feedLink: outFeed.link,
 				feedTitle: outFeed.title
 			}
@@ -93,12 +100,12 @@ var processFeed = function( url ) {
 
 		var itemFolder = folder+'/items';
 		if( !fs.existsSync(itemFolder) )
-			fs.mkdir(itemFolder, 0755 );
+			fs.mkdirSync(itemFolder, 0755 );
 
 		_.each( items, function(item) {
 			var itemPath = itemFolder+"/"+item.id+".json";
 			if( !fs.existsSync(itemPath) )
-				fs.writeFile(itemPath, JSON.stringify(item));
+				fs.writeFileSync(itemPath, JSON.stringify(item));
 		});
 	});
 }
@@ -106,7 +113,7 @@ var processFeed = function( url ) {
 app.get('/feedlist', function(req, res) {
 	var out = [];
 	var feedFolder = "./data/feeds";
-	var feeds = fs.readdirSync(feedFolder);
+	var feeds = dir(feedFolder);
 	_.each( feeds, function(feed) {
 		var feedIndex = JSON.parse(fs.readFileSync(feedFolder+"/"+feed+"/index.json"));
 		out.push( feedIndex.title );
@@ -124,18 +131,31 @@ app.post('/addfeed', function(req, res) {
 app.get('/readinglist', function(req, res) {
 	var out = [];
 	var feedFolder = "./data/feeds";
-	var feeds = fs.readdirSync(feedFolder);
+	var feeds = dir(feedFolder);
 	_.each( feeds, function(feed) {
 		var itemFolder = feedFolder+"/"+feed+"/items";
-		var items = fs.readdirSync(itemFolder);
+		var items = dir(itemFolder);
 		_.each( items, function(item) {
-			out.push(JSON.parse(fs.readFileSync(itemFolder+"/"+item)));
+			if( !fs.existsSync(feedFolder+"/"+feed+"/read/"+item) )
+				out.push(JSON.parse(fs.readFileSync(itemFolder+"/"+item)));
 		});
 	});
 	out = _.sortBy( out, function(item) {
 		return item.date;
 	})
 	res.send(JSON.stringify(out));
+});
+
+app.post('/markasread', function(req, res) {
+	var feedReadFolder = "./data/feeds/"+req.body.feedId+"/read";
+	if( !fs.existsSync(feedReadFolder) )
+		fs.mkdirSync(feedReadFolder, 0755 );
+	if( !fs.existsSync(feedReadFolder+"/"+req.body.id+".json") ) {
+		var path = feedReadFolder+"/"+req.body.id+".json";
+		var contents = JSON.stringify({readTime: (new Date).getTime()});
+		fs.writeFileSync(path, contents);
+	}
+	res.send(JSON.stringify({status:"OK"}));
 });
 
 var port = 3000;
@@ -145,14 +165,22 @@ console.log('Listening on port '+port);
 var msInAMinute = 1000*60;
 var thirtyMinutes = 30 * msInAMinute;
 
-//setInterval( function() {
-//	console.log("WHEE");
-//}, thirtyMinutes);
+var updateFeeds = function() {
+	var feedFolder = "./data/feeds";
+	var feeds = dir(feedFolder);
+	_.each( feeds, function(feed) {
+		var feedIndex = JSON.parse(fs.readFileSync(feedFolder+"/"+feed+"/index.json"));
+		var currentTime = (new Date).getTime();
+		var delta = currentTime - feedIndex.lastFetched;
+		if( delta > 2*thirtyMinutes ) { // update at most once an hour
+			console.log( "Updating: " + feedIndex.title );
+			processFeed( feedIndex.url );
+		}
+	});
+};
 
-//var feedFolder = "./data/feeds";
-//var feeds = fs.readdirSync(feedFolder);
-//_.each( feeds, function(feed) {
-//	var feedIndex = JSON.parse(fs.readFileSync(feedFolder+"/"+feed+"/index.json"));
-//	console.log( feedIndex.url );
-//	processFeed( feedIndex.url );
-//});
+updateFeeds();
+setInterval( function() {
+	console.log( "Waking up to update feeds..." );
+	updateFeeds();
+}, thirtyMinutes+(10*60*1000*Math.random())); // 30 minutes + 0-10 minutes.

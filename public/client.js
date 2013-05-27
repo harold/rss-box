@@ -24,6 +24,9 @@ var ReadingList = (function () {
 				item.elt = _this.createEltFromItem(item);
 				_this.elt.append(item.elt);
 			});
+
+			if( 0 == _this.list.length )
+				_this.elt.replaceWith("No unread items. You can add more feeds using that menu in the top right corner &rarr;");
 		});
 	};
 	ReadingList.prototype.toggleByIndex = function (index) {
@@ -39,9 +42,16 @@ var ReadingList = (function () {
 			this.toggleByIndex(this.index);
 			this.index = newIndex;
 			this.toggleByIndex(newIndex);
-			var item = $(this.list[newIndex].elt);
-			$(window).scrollTop(item.offset().top);
+			var item = this.list[newIndex];
+			$(window).scrollTop(item.elt.offset().top);
+			this.markAsRead( item );
 		}
+	};
+	ReadingList.prototype.markAsRead = function( item ) {
+		$.post( '/markasread', {
+			feedId: item.feedId,
+			id: item.id
+		});
 	};
 	ReadingList.prototype.createEltFromItem = function (item) {
 		var _this = this;
@@ -69,10 +79,10 @@ var ReadingList = (function () {
 		}));
 		elt.children(".one-line-item").on("click", function (e) {
 			_this.toggleByIndex(_this.index);
-			var item = $(e.currentTarget).parent();
-			_this.index = item.index();
+			_this.index = item.elt.index();
 			_this.toggleByIndex(_this.index);
-			$(window).scrollTop(item.offset().top);
+			$(window).scrollTop(item.elt.offset().top);
+			_this.markAsRead(item);
 		});
 		return elt;
 	};
