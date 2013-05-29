@@ -74,6 +74,7 @@ h1, h2, h3 {
 	list-style:none;
 	padding: 0.5ex 0.5em;
 	max-width: 25em;
+	white-space: nowrap;
 	overflow: hidden;
 }
 
