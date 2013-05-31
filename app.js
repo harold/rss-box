@@ -146,6 +146,6 @@ var updateFeeds = function() {
 
 updateFeeds();
 setInterval( function() {
-	console.log( "Waking up to update feeds..." );
+	console.log( "Waking up to update feeds... ("+(new Date)+")" );
 	updateFeeds();
 }, fiveMinutes+(fiveMinutes*Math.random())); // 5 minutes + 0-5 minutes.

@@ -26,7 +26,7 @@ var ReadingList = (function () {
 			});
 
 			if( 0 == _this.list.length )
-				_this.elt.replaceWith("No unread items. You can add more feeds using that menu in the top right corner &rarr;");
+				_this.elt.empty().append("No unread items. You can add more feeds using that menu in the top right corner &rarr;");
 
 			humane.log("Reading list refreshed, "+_this.list.length+" unread items.");
 		});
@@ -129,6 +129,6 @@ $(document).ready(function () {
 				addInput.val("");
 			}
 		});
-		list.append(addArea);
+		list.prepend(addArea);
 	});
 });
