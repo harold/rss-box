@@ -14,19 +14,21 @@ var ReadingList = (function () {
 				_this.refresh();
 		});
 	}
-	ReadingList.prototype.refresh = function() {
+	ReadingList.prototype.refresh = function( id ) {
 		var _this = this;
 		this.index = -1;
 		this.elt.empty();
-		$.getJSON("/readinglist", function( items ) {
+		var path = "/readinglist" + (id ? "/"+id : ""); 
+		$.getJSON(path, function( items ) {
 			_this.list = items;
+			_this.elt.empty();
 			_.each( items, function(item) {
 				item.elt = _this.createEltFromItem(item);
 				_this.elt.append(item.elt);
 			});
 
 			if( 0 == _this.list.length )
-				_this.elt.empty().append("No unread items. You can add more feeds using that menu in the top right corner &rarr;");
+				_this.elt.append("No unread items. You can add more feeds using that menu in the top right corner &rarr;");
 
 			humane.log("Reading list refreshed, "+_this.list.length+" unread items.");
 		});
@@ -102,6 +104,7 @@ $(document).ready(function () {
 
 		var makeListItem = function( feed ) {
 			var item = $("<li/>").html(feed.title);
+			item.data("feedId", feed.id);
 			if( feed.id ) {
 				var redX = $("<span title='REMOVE' class='red-x'>x</span>");
 				redX.click( function(e) {
@@ -117,7 +120,9 @@ $(document).ready(function () {
 		}
 
 		_.each( feeds, function(feed) {
-			list.append(makeListItem(feed));
+			var listItem = makeListItem(feed);
+			listItem.click( function() { _rl.refresh($(this).data("feedId")); });
+			list.append(listItem);
 		});
 		var addArea = $("<li/>");
 		addArea.append("Add:");

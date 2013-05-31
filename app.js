@@ -95,15 +95,16 @@ app.post('/removefeed', function(req, res) {
 	res.send(JSON.stringify({status:"OK"}));
 });
 
-app.get('/readinglist', function(req, res) {
+app.get('/readinglist/:id?', function(req, res) {
+	var id = req.params.id;
 	var out = [];
 	var feedFolder = "./data/feeds";
-	var feeds = dir(feedFolder);
+	var feeds = id ? [ id ] : dir(feedFolder);
 	_.each( feeds, function(feed) {
 		var itemFolder = feedFolder+"/"+feed+"/items";
 		var items = dir(itemFolder);
 		_.each( items, function(item) {
-			if( !fs.existsSync(feedFolder+"/"+feed+"/read/"+item) )
+			if( id || !fs.existsSync(feedFolder+"/"+feed+"/read/"+item) )
 				out.push(JSON.parse(fs.readFileSync(itemFolder+"/"+item)));
 		});
 	});
