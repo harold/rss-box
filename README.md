@@ -1,4 +1,4 @@
-A simplest possible web-based rss reader you can host yourself with node and dropbox.
+A simplest-possible web-based rss reader you can host yourself with node and dropbox.
 ===
 
 ### Install
@@ -20,3 +20,5 @@ A simplest possible web-based rss reader you can host yourself with node and dro
  - better flow for adding feeds, including feedback when the feed is parsed. (polling? / websockets?)
  - unread count
  - reorganize, refactor, and port to TypeScript
+ - `?` key for live help
+ - labels to organize feeds
