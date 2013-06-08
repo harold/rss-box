@@ -1,63 +1,63 @@
-var ReadingList = (function () {
+var ReadingList = (function() {
 	function ReadingList() {
 		this.elt = $("<div/>");
 		$("#main").append(this.elt);
 		this.refresh();
 
 		var _this = this;
-		$(window).keypress(function (e) {
-			if(106 == e.which) // j
+		$(window).keypress(function(e) {
+			if (106 == e.which) // j
 				_this.move(1);
-			if(107 == e.which) // k
+			if (107 == e.which) // k
 				_this.move(-1);
-			if( 114==e.which ) // r
+			if (114 == e.which) // r
 				_this.refresh();
 		});
 	}
-	ReadingList.prototype.refresh = function( id ) {
+	ReadingList.prototype.refresh = function(id) {
 		var _this = this;
 		this.index = -1;
 		this.elt.empty();
-		var path = "/readinglist" + (id ? "/"+id : ""); 
-		$.getJSON(path, function( items ) {
+		var path = "/readinglist" + (id ? "/" + id : "");
+		$.getJSON(path, function(items) {
 			_this.list = items;
 			_this.elt.empty();
-			_.each( items, function(item) {
+			_.each(items, function(item) {
 				item.elt = _this.createEltFromItem(item);
 				_this.elt.append(item.elt);
 			});
 
-			if( 0 == _this.list.length )
+			if (0 == _this.list.length)
 				_this.elt.append("No unread items. You can add more feeds using that menu in the top right corner &rarr;");
 
-			humane.log("Reading list refreshed, "+_this.list.length+" unread items.");
+			humane.log("Reading list refreshed, " + _this.list.length + " unread items.");
 		});
 	};
-	ReadingList.prototype.toggleByIndex = function (index) {
-		if(index >= 0 && index < this.list.length) {
+	ReadingList.prototype.toggleByIndex = function(index) {
+		if (index >= 0 && index < this.list.length) {
 			$(this.list[index].elt).children(".full-item, .one-line-item").toggle();
 		}
 	};
-	ReadingList.prototype.move = function (delta) {
+	ReadingList.prototype.move = function(delta) {
 		var newIndex = this.index + delta;
-		newIndex = Math.max( newIndex, 0 );
-		newIndex = Math.min( newIndex, this.list.length-1 );
-		if( newIndex != this.index ) {
+		newIndex = Math.max(newIndex, 0);
+		newIndex = Math.min(newIndex, this.list.length - 1);
+		if (newIndex != this.index) {
 			this.toggleByIndex(this.index);
 			this.index = newIndex;
 			this.toggleByIndex(newIndex);
 			var item = this.list[newIndex];
 			$(window).scrollTop(item.elt.offset().top);
-			this.markAsRead( item );
+			this.markAsRead(item);
 		}
 	};
-	ReadingList.prototype.markAsRead = function( item ) {
-		$.post( '/markasread', {
+	ReadingList.prototype.markAsRead = function(item) {
+		$.post('/markasread', {
 			feedId: item.feedId,
 			id: item.id
 		});
 	};
-	ReadingList.prototype.createEltFromItem = function (item) {
+	ReadingList.prototype.createEltFromItem = function(item) {
 		var _this = this;
 		var template = _.template($.trim("\
 			<div class='item'>\
@@ -81,7 +81,7 @@ var ReadingList = (function () {
 			feedTitle: item.feedTitle,
 			content: item.content
 		}));
-		elt.children(".one-line-item").on("click", function (e) {
+		elt.children(".one-line-item").on("click", function(e) {
 			_this.toggleByIndex(_this.index);
 			_this.index = item.elt.index();
 			_this.toggleByIndex(_this.index);
@@ -92,8 +92,8 @@ var ReadingList = (function () {
 	};
 	return ReadingList;
 })();
-$(document).ready(function () {
-	$("#menu-area #three-line-button").click(function (e) {
+$(document).ready(function() {
+	$("#menu-area #three-line-button").click(function(e) {
 		$("#menu-area").toggleClass("open");
 	});
 
@@ -102,14 +102,16 @@ $(document).ready(function () {
 	$.getJSON("/feedlist", function(feeds) {
 		var list = $("<ul/>").appendTo("#menu");
 
-		var makeListItem = function( feed ) {
+		var makeListItem = function(feed) {
 			var item = $("<li/>").html(feed.title);
 			item.data("feedId", feed.id);
-			if( feed.id ) {
+			if (feed.id) {
 				var redX = $("<span title='REMOVE' class='red-x'>x</span>");
-				redX.click( function(e) {
-					if( confirm( "Are you sure you want to remove "+feed.title+"?") ) {
-						$.post( '/removefeed', {feedId:feed.id}, function() {
+				redX.click(function(e) {
+					if (confirm("Are you sure you want to remove " + feed.title + "?")) {
+						$.post('/removefeed', {
+							feedId: feed.id
+						}, function() {
 							item.remove();
 						});
 					}
@@ -119,18 +121,24 @@ $(document).ready(function () {
 			return item;
 		}
 
-		_.each( feeds, function(feed) {
+		_.each(feeds, function(feed) {
 			var listItem = makeListItem(feed);
-			listItem.click( function() { _rl.refresh($(this).data("feedId")); });
+			listItem.click(function() {
+				_rl.refresh($(this).data("feedId"));
+			});
 			list.append(listItem);
 		});
 		var addArea = $("<li/>");
 		addArea.append("Add:");
 		var addInput = $("<input/>").appendTo(addArea);
-		addInput.keypress( function(e) {
-			if(13==e.which) { // enter
-				$.post("/addfeed", {url:addInput.val()});
-				addArea.before(makeListItem({title:addInput.val()}));
+		addInput.keypress(function(e) {
+			if (13 == e.which) { // enter
+				$.post("/addfeed", {
+					url: addInput.val()
+				});
+				addArea.before(makeListItem({
+					title: addInput.val()
+				}));
 				addInput.val("");
 			}
 		});
