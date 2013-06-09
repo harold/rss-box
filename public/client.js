@@ -61,18 +61,18 @@ var ReadingList = (function() {
 		var _this = this;
 		var template = _.template($.trim("\
 			<div class='item'>\
-				<div class='one-line-item'>\
-					<div class='one-line-feed'><%= feedTitle %></div>\
-					<%= title %>\
-				</div>\
-				<div class='full-item'>\
-					<h2><a href='<%= link %>'><%= title %></a></h2>\
-					<div class='feed-title'>\
-						from <a href='<%= feedLink %>'><%= feedTitle %></a>\
-					</div>\
-					<div class='item-body'><%= content %></div>\
-					<div class='item-footer'>&nbsp;</div>\
-				</div>\
+			<div class='one-line-item'>\
+			<div class='one-line-feed'><%= feedTitle %></div>\
+			<%= title %>\
+			</div>\
+			<div class='full-item'>\
+			<h2><a href='<%= link %>'><%= title %></a></h2>\
+			<div class='feed-title'>\
+			from <a href='<%= feedLink %>'><%= feedTitle %></a>\
+			</div>\
+			<div class='item-body'><%= content %></div>\
+			<div class='item-footer'>&nbsp;</div>\
+			</div>\
 			</div>"));
 		var elt = $(template({
 			title: item.title,
@@ -114,6 +114,7 @@ $(document).ready(function() {
 						}, function() {
 							item.remove();
 						});
+						return false;
 					}
 				});
 				item.prepend(redX);
@@ -133,14 +134,25 @@ $(document).ready(function() {
 		var addInput = $("<input/>").appendTo(addArea);
 		addInput.keypress(function(e) {
 			if (13 == e.which) { // enter
-				$.post("/addfeed", {
-					url: addInput.val()
+				var url = addInput.val();
+				var tempListItem = makeListItem({
+					title: url
 				});
-				addArea.before(makeListItem({
-					title: addInput.val()
-				}));
+				list.append(tempListItem);
+
+				var request = $.post("/addfeed", {
+					url: url
+				});
+				request.done(function(res) {
+					res.title += " ("+res.newArticleCount+")";
+					tempListItem.replaceWith(makeListItem(res));
+				});
+				request.fail(function(res) {
+					tempListItem.replaceWith($("<li/>").html("Failed to add feed: " + url));
+				})
 				addInput.val("");
 			}
+			e.stopPropagation();
 		});
 		list.prepend(addArea);
 	});

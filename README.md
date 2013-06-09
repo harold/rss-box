@@ -17,7 +17,7 @@ A simplest-possible web-based rss reader you can host yourself with node and dro
 
 ### TODO (in no particular order)
  - saved items
- - better flow for adding feeds, including feedback when the feed is parsed. (polling? / websockets?)
+ - mark as read -- visual feedback for read/unread
  - unread count
  - reorganize, refactor, and port to TypeScript
  - `?` key for live help

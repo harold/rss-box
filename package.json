@@ -9,6 +9,8 @@
     "rimraf": "2.1.4",
     "request": "2.21.0",
     "feedparser": "0.15.3",
-    "cheerio": "0.11.0"
-  }
+    "cheerio": "0.11.0",
+    "jsuri": "1.2.2"
+  },
+  "main": "app.js"
 }
