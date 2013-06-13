@@ -1,3 +1,14 @@
+var _el = function(s) {
+	return document.createElement(s)
+};
+
+var log = function(html) {
+	var l = $(_el("div")).html(html).prependTo($("#log-area"));
+	setTimeout(function() {
+		l.slideUp();
+	}, 1000);
+}
+
 var ReadingList = (function() {
 	function ReadingList() {
 		this.elt = $("<div/>");
@@ -39,7 +50,7 @@ var ReadingList = (function() {
 			if (0 == _this.list.length)
 				_this.elt.append("No unread items. You can add more feeds using that menu in the top right corner &rarr;");
 
-			humane.log("Reading list refreshed, " + _this.list.length + " unread items.");
+			log("Reading list refreshed, <strong>" + _this.list.length + "</strong> unread items.");
 		});
 	};
 	ReadingList.prototype.toggleByIndex = function(index) {
