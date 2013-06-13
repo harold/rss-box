@@ -20,7 +20,7 @@ A simplest-possible web-based rss reader you can host yourself with node and dro
 
  - `npm install -g nodemon`, if you don't have nodemon yet.
  - Easy mode: `nodemon`
- - Everything is a bit dicey so far, the code functions, but its unpolished.
+ - Everything is a bit dicey so far; the code works, but it's unpolished.
 
 ### TODO (in no particular order)
  - saved items
