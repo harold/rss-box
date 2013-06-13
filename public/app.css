@@ -137,7 +137,9 @@ h1, h2, h3 {
 
 .item-footer {
 	background: #eee;
+	color: #b8b8b8;
 	border-radius: 0 0 4px 4px;
+	padding:4px;
 }
 
 p {

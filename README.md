@@ -13,12 +13,18 @@ A simplest-possible web-based rss reader you can host yourself with node and dro
 
 ### Keys
  - `j`/`k` next/previous item
+ - `m` mark as read/unread
  - `r` refresh reading list
+
+### Hacking
+
+ - `npm install -g nodemon`, if you don't have nodemon yet.
+ - Easy mode: `nodemon`
+ - Everything is a bit dicey so far, the code functions, but its unpolished.
 
 ### TODO (in no particular order)
  - saved items
- - mark as read -- visual feedback for read/unread
  - unread count
- - reorganize, refactor, and port to TypeScript
  - `?` key for live help
+ - reorganize, refactor, and port to TypeScript
  - labels to organize feeds

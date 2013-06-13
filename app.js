@@ -154,15 +154,28 @@ app.get('/readinglist/:id?', function(req, res) {
 });
 
 app.post('/markasread', function(req, res) {
-	var feedReadFolder = "./data/feeds/" + req.body.feedId + "/read";
+	var feedId = req.body.feedId;
+	var itemId = req.body.itemId;
+	var feedReadFolder = "./data/feeds/" + feedId + "/read";
 	makeDir(feedReadFolder);
-	if (!fs.existsSync(feedReadFolder + "/" + req.body.id + ".json")) {
-		var path = feedReadFolder + "/" + req.body.id + ".json";
+	var path = feedReadFolder + "/" + itemId + ".json";
+	if (!fs.existsSync(path)) {
+		var path = path;
 		var contents = {
 			readTime: (new Date).getTime()
 		};
 		fs.writeFileSync(path, contents);
 	}
+	res.send({
+		status: "OK"
+	});
+});
+
+app.post('/markasunread', function(req, res) {
+	var feedId = req.body.feedId;
+	var itemId = req.body.itemId;
+	var path = "./data/feeds/" + feedId + "/read/" + itemId + ".json";
+	rimraf.sync(path);
 	res.send({
 		status: "OK"
 	});

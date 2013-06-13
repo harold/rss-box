@@ -12,8 +12,17 @@ var ReadingList = (function() {
 				_this.move(-1);
 			if (114 == e.which) // r
 				_this.refresh();
+			if (109 == e.which) // r
+				_this.toggleRead();
 		});
 	}
+	ReadingList.prototype.toggleRead = function() {
+		var item = this.list[this.index];
+		if (!item.unread)
+			this.markAsUnread(item);
+		else
+			this.markAsRead(item);
+	};
 	ReadingList.prototype.refresh = function(id) {
 		var _this = this;
 		this.index = -1;
@@ -52,9 +61,25 @@ var ReadingList = (function() {
 		}
 	};
 	ReadingList.prototype.markAsRead = function(item) {
-		$.post('/markasread', {
+		delete item.unread;
+		var promise = $.post('/markasread', {
 			feedId: item.feedId,
-			id: item.id
+			itemId: item.id
+		});
+		promise.done(function(response) {
+			if ("OK" == response.status)
+				item.elt.find(".item-footer").html("This item is read.");
+		});
+	};
+	ReadingList.prototype.markAsUnread = function(item) {
+		item.unread = true;
+		var promise = $.post('/markasunread', {
+			feedId: item.feedId,
+			itemId: item.id
+		});
+		promise.done(function(response) {
+			if ("OK" == response.status)
+				item.elt.find(".item-footer").html("This item is <strong>un</strong>-read.");
 		});
 	};
 	ReadingList.prototype.createEltFromItem = function(item) {
@@ -71,7 +96,7 @@ var ReadingList = (function() {
 			from <a href='<%= feedLink %>'><%= feedTitle %></a>\
 			</div>\
 			<div class='item-body'><%= content %></div>\
-			<div class='item-footer'>&nbsp;</div>\
+			<div class='item-footer'>This item is read.</div>\
 			</div>\
 			</div>"));
 		var elt = $(template({
@@ -144,7 +169,7 @@ $(document).ready(function() {
 					url: url
 				});
 				request.done(function(res) {
-					res.title += " ("+res.newArticleCount+")";
+					res.title += " (" + res.newArticleCount + ")";
 					tempListItem.replaceWith(makeListItem(res));
 				});
 				request.fail(function(res) {
