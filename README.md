@@ -29,4 +29,4 @@ A simplest-possible web-based rss reader you can host yourself with node and dro
  - reorganize, refactor, and port to TypeScript
  - labels to organize feeds
  - investigate node-webkit or other libraries to make an "app" for simpler setup
- - double the number of stars on this repo (Last doubling `2` on June 15 2013)
+ - double the number of stars on this repo (Last doubling `4` on June 18 2013)
