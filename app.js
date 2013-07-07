@@ -1,9 +1,8 @@
 var _ = require('underscore');
 var path = require('path');
-var fs = require('fs');
+var fs = require('fs.extra');
 var request = require('request');
 var FeedParser = require('feedparser');
-var rimraf = require('rimraf');
 var cheerio = require('cheerio');
 var jsuri = require('jsuri');
 
@@ -46,11 +45,14 @@ var processFeed = function(url, doneCallback) {
 		uri.protocol("http");
 	var req = request(uri.toString());
 	req.on('error', function(error) {
-		console.log("feedparser error:", error);
+		console.log("request error:", error);
 		if (doneCallback)
 			doneCallback("ERR", error);
 	});
 	var fp = req.pipe(new FeedParser());
+	fp.on('error', function(a, b, c) {
+		console.log("FeedParser error", a, b, c);
+	});
 	fp.on('meta', function(meta) {
 		var outFeed = {
 			url: url,
@@ -124,7 +126,7 @@ app.post('/addfeed', function(req, res) {
 
 app.post('/removefeed', function(req, res) {
 	var feed = req.body.feedId;
-	rimraf.sync('./data/feeds/' + feed);
+	fs.rmrfSync('./data/feeds/' + feed);
 	res.send({
 		status: "OK"
 	});
@@ -134,23 +136,61 @@ app.get('/readinglist/:id?', function(req, res) {
 	var id = req.params.id;
 	var out = [];
 	var feedFolder = "./data/feeds";
-	var feeds = id ? [id] : dir(feedFolder);
-	_.each(feeds, function(feed) {
-		var itemFolder = feedFolder + "/" + feed + "/items";
-		if (fs.existsSync(itemFolder)) {
-			var items = dir(itemFolder);
-			_.each(items, function(item) {
-				if (id || !fs.existsSync(feedFolder + "/" + feed + "/read/" + item))
-					out.push(JSON.parse(fs.readFileSync(itemFolder + "/" + item)));
-			});
-		} else {
-			console.log("Missing items folder:", itemFolder);
-		}
-	});
+	if ("saved" == id) {
+		var feeds = dir(feedFolder);
+		_.each(feeds, function(feed) {
+			var savedFolder = feedFolder + "/" + feed + "/saved";
+			if (fs.existsSync(savedFolder)) {
+				var items = dir(savedFolder);
+				_.each(items, function(item) {
+					out.push(JSON.parse(fs.readFileSync(savedFolder + "/" + item)));
+				});
+			}
+		});
+	} else {
+		var feeds = id ? [id] : dir(feedFolder);
+		_.each(feeds, function(feed) {
+			var itemFolder = feedFolder + "/" + feed + "/items";
+			if (fs.existsSync(itemFolder)) {
+				var items = dir(itemFolder);
+				_.each(items, function(item) {
+					if (id || !fs.existsSync(feedFolder + "/" + feed + "/read/" + item))
+						out.push(JSON.parse(fs.readFileSync(itemFolder + "/" + item)));
+				});
+			} else {
+				console.log("Missing items folder:", itemFolder);
+			}
+		});
+	}
 	out = _.sortBy(out, function(item) {
 		return item.date;
 	})
 	res.send(out);
+});
+
+app.post('/saveitem', function(req, res) {
+	var feedId = req.body.feedId;
+	var itemId = req.body.itemId;
+	var feedFolder = "./data/feeds/" + feedId;
+	var feedItemFolder = feedFolder + "/items"
+	var feedSavedFolder = feedFolder + "/saved";
+	makeDir(feedSavedFolder);
+	var src = feedItemFolder + "/" + itemId + ".json";
+	var dst = feedSavedFolder + "/" + itemId + ".json";
+	if (fs.existsSync(src) && !fs.existsSync(dst)) {
+		fs.copy(src, dst, function(err) {
+			if (err)
+				throw err;
+			else
+				res.send({
+					status: "OK"
+				});
+		});
+	} else {
+		res.send({
+			status: "ALREADY SAVED"
+		});
+	}
 });
 
 app.post('/markasread', function(req, res) {
@@ -175,7 +215,7 @@ app.post('/markasunread', function(req, res) {
 	var feedId = req.body.feedId;
 	var itemId = req.body.itemId;
 	var path = "./data/feeds/" + feedId + "/read/" + itemId + ".json";
-	rimraf.sync(path);
+	fs.rmrfSync(path);
 	res.send({
 		status: "OK"
 	});
@@ -187,7 +227,7 @@ console.log('Listening on port ' + port);
 
 var msInAMinute = 1000 * 60;
 var fiveMinutes = 5 * msInAMinute;
-var anHour = 60 * msInAMinute;
+var halfHour = 30 * msInAMinute;
 
 var updateFeeds = function() {
 	var feedFolder = "./data/feeds";
@@ -198,8 +238,17 @@ var updateFeeds = function() {
 			var feedIndex = JSON.parse(fs.readFileSync(indexPath));
 			var currentTime = (new Date).getTime();
 			var delta = currentTime - feedIndex.lastFetched;
-			if (delta > anHour) // update at most once an hour
-				processFeed(feedIndex.url);
+			var retried = false;
+			if (delta > halfHour) // update at most every half an hour
+				processFeed(feedIndex.url, function(obj) {
+					if (obj === "ERR" && !retried) {
+						retried = true;
+						setTimeout(function() {
+							console.log("retrying:", feedIndex.url);
+							processFeed(feedIndex.url);
+						}, 3000); // wait 3 seconds and try again.
+					}
+				});
 		} else {
 			try {
 				fs.rmdirSync(feedFolder + "/" + feed);
@@ -214,4 +263,4 @@ updateFeeds();
 setInterval(function() {
 	console.log("Waking up to update feeds... (" + (new Date) + ")");
 	updateFeeds();
-}, fiveMinutes + (fiveMinutes * Math.random())); // 5 minutes + 0-5 minutes.
+}, msInAMinute + (msInAMinute * Math.random())); // 1 minute + 0-1 minutes.

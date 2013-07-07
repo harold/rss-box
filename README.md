@@ -15,6 +15,8 @@ A simplest-possible web-based rss reader you can host yourself with node and dro
  - `j`/`k` next/previous item
  - `m` mark as read/unread
  - `r` refresh reading list
+ - `s` save item
+ - `S` view saved items (`shift+s`)
 
 ### Hacking
 
@@ -23,7 +25,6 @@ A simplest-possible web-based rss reader you can host yourself with node and dro
  - Everything is a bit dicey so far; the code works, but it's unpolished.
 
 ### TODO (in no particular order)
- - saved items
  - unread count
  - `?` key for live help
  - reorganize, refactor, and port to TypeScript

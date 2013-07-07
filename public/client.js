@@ -25,8 +25,28 @@ var ReadingList = (function() {
 				_this.refresh();
 			if (109 == e.which) // r
 				_this.toggleRead();
+			if (115 == e.which) // s
+				_this.saveItem();
+			if (83 == e.which) // S
+				_this.refresh("saved");
 		});
 	}
+	ReadingList.prototype.saveItem = function() {
+		var item = this.list[this.index];
+		if (!item)
+			return;
+		var promise = $.post('/saveitem', {
+			feedId: item.feedId,
+			itemId: item.id
+		});
+		promise.done(function(response) {
+			if ("OK" == response.status) {
+				var elt = item.elt.find(".item-footer");
+				var oldHTML = elt.html();
+				elt.html(oldHTML + " <strong>SAVED</strong>");
+			}
+		})
+	};
 	ReadingList.prototype.toggleRead = function() {
 		var item = this.list[this.index];
 		if (!item.unread)
